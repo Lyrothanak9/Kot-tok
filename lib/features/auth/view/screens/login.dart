@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide TextField;
+import 'package:provider/provider.dart';
 
+import '../../../../providers/auth_provider.dart';
+import '../widgets/button.dart';
+import '../widgets/image_profile_auth.dart';
+import '../widgets/line_divider.dart';
+import '../widgets/social_auth_button.dart';
 import '../widgets/text_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
+  bool _isPasswordObscured = true;
 
   @override
   void dispose() {
@@ -22,75 +28,197 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration Successful!')),
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.login(
+        _emailController.text,
+        _passwordController.text,
       );
+      if (success && mounted) {
+        _emailController.clear();
+        _passwordController.clear();
+        _formKey.currentState?.reset();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Successful!')),
+        );
+        // Navigator.pushReplacementNamed(context, '/home');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
     var screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Container(
-                  height: screenSize.height * 0.2,
-                  width: double.infinity,
-                  color: Colors.red,
-                  child: const Text(""),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - (screenSize.height * 0.06),
                 ),
-                const SizedBox(height: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: IntrinsicHeight(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Email", style: Theme.of(context).textTheme.headlineSmall),
-                        Text(
-                          "Forget Password?",
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: Theme.of(context).primaryColor,
+                        SizedBox(height: screenSize.height * 0.02),
+                        Center(
+                          child: ImageProfileAuth(
+                            avatarSize: screenSize.height * 0.13,
+                            title: "Login",
                           ),
+                        ),
+                        SizedBox(height: screenSize.height * 0.04),
+                        Text(
+                          "Email",
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        SizedBox(height: screenSize.height * 0.01),
+                        _buildEmailField(),
+                        SizedBox(height: 36,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Password",
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            Text(
+                              "Forget Password?",
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenSize.height * 0.01),
+                        _buildPasswordField(),
+                        SizedBox(height: 36,),
+                        Button(
+                          onPressed: isLoading ? null : _submitForm,
+                          title: "Login",
+                          isLoading: isLoading,
+                        ),
+                        SizedBox(height: 36,),
+                        const LineDivider(),
+                        SizedBox(height: 36,),
+                        _buildSocialAuth(),
+                        const Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Not registered yet? ",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(color: Colors.grey),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/signup');
+                              },
+                              child: Text(
+                                "Sign Up >",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    CustomTextField.email(
-                      controller: _emailController,
-                    ),
-                    const SizedBox(height: 16),
-                    Text("Password", style: Theme.of(context).textTheme.headlineSmall),
-                    const SizedBox(height: 8),
-                    CustomTextField.password(
-                      controller: _passwordController,
-                      onFieldSubmitted: (_) => _submitForm(),
-                      autovalidateMode: AutovalidateMode.disabled,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _submitForm,
-                        child: const Text("Login"),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildEmailField() {
+    return MyTextField(
+      controller: _emailController,
+      hintText: "Enter your email",
+      keyboardType: TextInputType.emailAddress,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Email cannot be empty';
+        }
+        if (!value.contains('@')) {
+          return 'Please enter a valid email';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return MyTextField(
+      controller: _passwordController,
+      hintText: "Enter your password",
+      obscureText: _isPasswordObscured,
+      keyboardType: TextInputType.visiblePassword,
+      suffixIcon: IconButton(
+        icon: Icon(
+          _isPasswordObscured
+              ? Icons.visibility_off
+              : Icons.visibility,
+          color: Colors.grey[400],
+        ),
+        onPressed: () {
+          setState(() {
+            _isPasswordObscured = !_isPasswordObscured;
+          });
+        },
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Password cannot be empty';
+        }
+        if (value.length < 6) {
+          return 'Password must be at least 6 characters';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildSocialAuth() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SocialAuthButton(
+          image:
+          'https://img.icons8.com/?size=96&id=17949&format=png',
+        ),
+        SizedBox(width: 16),
+        SocialAuthButton(
+          image:
+          "https://img.icons8.com/?size=100&id=30840&format=png&color=000000",
+        ),
+        SizedBox(width: 16),
+        SocialAuthButton(
+          image:
+          "https://img.icons8.com/?size=100&id=13912&format=png&color=000000",
+        ),
+      ],
     );
   }
 }
