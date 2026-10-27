@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart' hide TextField;
 import 'package:provider/provider.dart';
 
-import '../../../../providers/auth_provider.dart';
-import '../widgets/button.dart';
-import '../widgets/image_profile_auth.dart';
-import '../widgets/line_divider.dart';
-import '../widgets/social_auth_button.dart';
-import '../widgets/text_field.dart';
+import '../../providers/auth_provider.dart';
+import 'widgets/button.dart';
+import 'widgets/image_profile_auth.dart';
+import 'widgets/line_divider.dart';
+import 'widgets/social_auth_button.dart';
+import 'widgets/text_field.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -44,8 +44,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _confirmPasswordController.clear();
         _formKey.currentState?.reset();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration Successful!')),
+          const SnackBar(
+              content: Text('Registration Successful!'),
+              backgroundColor: Colors.green,
+          ),
         );
+        Navigator.pushReplacementNamed(context, '/main');
       }
     }
   }
@@ -133,7 +137,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 }
                               },
                               child: Text(
-                                "Login",
+                                "Sign In",
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge

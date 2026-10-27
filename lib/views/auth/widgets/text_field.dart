@@ -31,11 +31,10 @@ class MyTextField extends StatelessWidget {
         hintText: hintText,
         suffixIcon: suffixIcon,
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.grey,
+          borderSide: const BorderSide(
             width: 1,
           ),
         ),

@@ -17,7 +17,7 @@ class LineDivider extends StatelessWidget {
         Text(
           'Or continue with',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Colors.grey,
+            color: Colors.grey[400],
           ),
         ),
         Expanded(

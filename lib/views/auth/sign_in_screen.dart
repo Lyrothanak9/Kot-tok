@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart' hide TextField;
 import 'package:provider/provider.dart';
 
-import '../../../../providers/auth_provider.dart';
-import '../widgets/button.dart';
-import '../widgets/image_profile_auth.dart';
-import '../widgets/line_divider.dart';
-import '../widgets/social_auth_button.dart';
-import '../widgets/text_field.dart';
+import '../../providers/auth_provider.dart';
+import 'widgets/button.dart';
+import 'widgets/image_profile_auth.dart';
+import 'widgets/line_divider.dart';
+import 'widgets/social_auth_button.dart';
+import 'widgets/text_field.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -40,9 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.clear();
         _formKey.currentState?.reset();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful!')),
+          const SnackBar(content: Text('Sign In Successful!'),
+            backgroundColor: Colors.green,),
         );
-        // Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/main');
       }
     }
   }
@@ -58,8 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context, constraints) {
             return SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+                horizontal: screenSize.width * 0.06,
+                vertical: screenSize.height * 0.03,
               ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -75,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Center(
                           child: ImageProfileAuth(
                             avatarSize: screenSize.height * 0.13,
-                            title: "Login",
+                            title: "Sign In",
                           ),
                         ),
                         SizedBox(height: screenSize.height * 0.04),
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: screenSize.height * 0.01),
                         _buildEmailField(),
-                        SizedBox(height: 36,),
+                        SizedBox(height: screenSize.height * 0.02),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -103,17 +104,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: screenSize.height * 0.01),
                         _buildPasswordField(),
-                        SizedBox(height: 36,),
+                        SizedBox(height: screenSize.height * 0.04),
                         Button(
                           onPressed: isLoading ? null : _submitForm,
-                          title: "Login",
+                          title: "Sign In",
                           isLoading: isLoading,
                         ),
-                        SizedBox(height: 36,),
+                        SizedBox(height: screenSize.height * 0.02),
                         const LineDivider(),
-                        SizedBox(height: 36,),
+                        SizedBox(height: screenSize.height * 0.02),
                         _buildSocialAuth(),
                         const Spacer(),
+                        SizedBox(height: screenSize.height * 0.02),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

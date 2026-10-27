@@ -16,7 +16,6 @@ class SocialAuthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
 
-    // Use the provided size, or default to 15% of the screen width
     final buttonSize = size ?? (screenSize.width * 0.15);
     final padding = buttonSize * 0.25;
 
@@ -28,7 +27,7 @@ class SocialAuthButton extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD8D2FA).withValues(alpha: 0.6), // Soft drop shadow
+            color: const Color(0xFFD8D2FA).withValues(alpha: 0.6),
             blurRadius: buttonSize * 0.3,
             spreadRadius: 2,
             offset: Offset(0, buttonSize * 0.12),
@@ -39,14 +38,14 @@ class SocialAuthButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed ?? () {},
-          customBorder: const CircleBorder(), // Keeps the ripple effect circular
+          customBorder: const CircleBorder(),
           child: Padding(
             padding: EdgeInsets.all(padding),
             child: image != null
                 ? Image.network(
-              image!,
-              fit: BoxFit.contain,
-            )
+                    image!,
+                    fit: BoxFit.contain,
+                  )
                 : const SizedBox(),
           ),
         ),

@@ -89,7 +89,8 @@ class ImageProfileAuth extends StatelessWidget {
 
   const ImageProfileAuth({
     super.key,
-    this.avatarSize, required this.title,
+    this.avatarSize,
+    required this.title,
   });
 
   @override
