@@ -1,31 +1,49 @@
+# Project Structure Summary
+
+```
 lib/
 ├── app/
-│   ├── app.dart                   # MaterialApp, Provider & Routes initialization
-│   ├── routes.dart                # AppRoutes (/login, /signup, /main)
+│   ├── app.dart                   # MaterialApp, Provider setup & initial route
+│   ├── routes.dart                # AppRoutes mapping (/login, /signup, /main)
 │   └── theme/
-│       ├── app_colors.dart        # Color design tokens
-│       ├── app_theme.dart         # Material 3 ThemeData
-│       └── text_styles.dart       # Typography tokens (Roboto Flex)
+│       ├── app_colors.dart        # Color design tokens & palette
+│       ├── app_theme.dart         # Material Design 3 ThemeData configuration
+│       └── text_styles.dart       # Typography styles & Roboto Flex font setup
 │
-├── models/
-│   └── user_model.dart            # UserModel data model with JSON serialization
+├── core/
+│   ├── constants/                 # App constants & keys
+│   └── services/
+│       └── supabase_service.dart  # Supabase client singleton wrapper
 │
-├── services/
-│   ├── supabase_service.dart      # Supabase client singleton wrapper
-│   └── auth_service.dart          # Remote Auth API calls (signIn, signUp, signOut)
-│
-├── providers/
-│   ├── auth_provider.dart         # Auth State Management
-│   └── navigation_provider.dart   # Bottom Navigation State Management
-│
-├── views/
+├── features/
 │   ├── auth/
-│   │   ├── sign_in_screen.dart    # Sign In screen
-│   │   ├── sign_up_screen.dart    # Sign Up screen
-│   │   └── widgets/               # Auth widgets (button, avatar, text fields, dividers)
-│   └── main/
-│       ├── main_navigation_screen.dart  # IndexedStack + BottomNavigationBar
-│       ├── home_screen.dart             # Home tab screen
-│       └── profile_screen.dart          # Profile tab screen
+│   │   ├── models/
+│   │   │   └── user_model.dart    # UserModel data class
+│   │   ├── providers/
+│   │   │   └── auth_provider.dart # Auth State Management (login, signUp)
+│   │   ├── services/
+│   │   │   └── auth_service.dart  # Remote Auth API integration
+│   │   ├── screens/
+│   │   │   ├── sign_in_screen.dart # Sign In screen UI & form logic
+│   │   │   └── sign_up_screen.dart # Sign Up screen UI & form logic
+│   │   └── widgets/
+│   │       ├── auth_buttom_prompt.dart  # Reusable bottom navigation prompt link
+│   │       ├── button.dart              # Gradient submit button with spinner
+│   │       ├── image_profile_auth.dart  # Responsive profile avatar & header title
+│   │       ├── line_divider.dart        # "Or continue with" section divider
+│   │       ├── social_auth_button.dart  # Responsive full-width social auth button
+│   │       └── text_field.dart          # Reusable text input field with validation
+│   │
+│   └── home/
+│       ├── models/                # Home data models
+│       ├── providers/
+│       │   └── navigation_provider.dart # Bottom navigation index manager
+│       ├── services/              # Home API services
+│       ├── screens/
+│       │   ├── home_screen.dart             # Home tab screen
+│       │   ├── main_navigation_screen.dart  # IndexedStack + BottomNavigationBar
+│       │   └── profile_screen.dart          # Profile tab screen
+│       └── widgets/               # Home feature widgets
 │
-└── main.dart                       # Entry point & Supabase initialization
+└── main.dart                       # App entry point & Supabase initialization
+```
