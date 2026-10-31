@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart' hide TextField;
+import 'package:kot_tok/features/auth/providers/auth_provider.dart';
+import 'package:kot_tok/features/auth/widgets/button.dart';
+import 'package:kot_tok/features/auth/widgets/image_profile_auth.dart';
+import 'package:kot_tok/features/auth/widgets/line_divider.dart';
+import 'package:kot_tok/features/auth/widgets/social_auth_button.dart';
+import 'package:kot_tok/features/auth/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
-import 'widgets/button.dart';
-import 'widgets/image_profile_auth.dart';
-import 'widgets/line_divider.dart';
-import 'widgets/social_auth_button.dart';
-import 'widgets/text_field.dart';
+import '../widgets/auth_buttom_prompt.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -40,8 +41,10 @@ class _SignInScreenState extends State<SignInScreen> {
         _passwordController.clear();
         _formKey.currentState?.reset();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign In Successful!'),
-            backgroundColor: Colors.green,),
+          const SnackBar(
+            content: Text('Sign In Successful!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pushReplacementNamed(context, '/main');
       }
@@ -116,32 +119,12 @@ class _SignInScreenState extends State<SignInScreen> {
                         _buildSocialAuth(),
                         const Spacer(),
                         SizedBox(height: screenSize.height * 0.02),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Not registered yet? ",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(color: Colors.grey),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, '/signup');
-                              },
-                              child: Text(
-                                "Sign Up >",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            ),
-                          ],
+                        AuthBottomPrompt(
+                          promptText: "Not registered yet? ",
+                          actionText: "Sign Up >",
+                          onTap: () => Navigator.pushNamed(context, '/signup'),
                         ),
+
                       ],
                     ),
                   ),
@@ -203,24 +186,12 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Widget _buildSocialAuth() {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SocialAuthButton(
-          image:
-          'https://img.icons8.com/?size=96&id=17949&format=png',
-        ),
-        SizedBox(width: 16),
-        SocialAuthButton(
-          image:
-          "https://img.icons8.com/?size=100&id=30840&format=png&color=000000",
-        ),
-        SizedBox(width: 16),
-        SocialAuthButton(
-          image:
-          "https://img.icons8.com/?size=100&id=13912&format=png&color=000000",
-        ),
-      ],
+    return SocialAuthButton(
+      image: 'https://img.icons8.com/?size=96&id=17949&format=png',
+      text: 'Sign Up with Google',
+      onPressed: () {
+
+      },
     );
   }
 }

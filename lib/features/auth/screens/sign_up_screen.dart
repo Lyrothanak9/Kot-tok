@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart' hide TextField;
+import 'package:kot_tok/features/auth/providers/auth_provider.dart';
+import 'package:kot_tok/features/auth/widgets/button.dart';
+import 'package:kot_tok/features/auth/widgets/image_profile_auth.dart';
+import 'package:kot_tok/features/auth/widgets/line_divider.dart';
+import 'package:kot_tok/features/auth/widgets/social_auth_button.dart';
+import 'package:kot_tok/features/auth/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
-import 'widgets/button.dart';
-import 'widgets/image_profile_auth.dart';
-import 'widgets/line_divider.dart';
-import 'widgets/social_auth_button.dart';
-import 'widgets/text_field.dart';
+import '../widgets/auth_buttom_prompt.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -44,10 +45,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _confirmPasswordController.clear();
         _formKey.currentState?.reset();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Registration Successful!'),
-              backgroundColor: Colors.green,
-          ),
+          _buildSnackBar(),
         );
         Navigator.pushReplacementNamed(context, '/main');
       }
@@ -118,36 +116,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _buildSocialAuth(),
                         const Spacer(),
                         const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Already have an account? ",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(color: Colors.grey),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                if (Navigator.canPop(context)) {
-                                  Navigator.pop(context);
-                                } else {
-                                  Navigator.pushReplacementNamed(context, '/login');
-                                }
-                              },
-                              child: Text(
-                                "Sign In",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
-                                  color: Theme.of(context).primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                        AuthBottomPrompt(
+                          promptText: "Already have an account? ",
+                          actionText: "Sign In >",
+                          onTap: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -241,24 +219,66 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildSocialAuth() {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SocialAuthButton(
-          image:
-          'https://img.icons8.com/?size=96&id=17949&format=png',
-        ),
-        SizedBox(width: 16),
-        SocialAuthButton(
-          image:
-          "https://img.icons8.com/?size=100&id=30840&format=png&color=000000",
-        ),
-        SizedBox(width: 16),
-        SocialAuthButton(
-          image:
-          "https://img.icons8.com/?size=100&id=13912&format=png&color=000000",
-        ),
-      ],
+    return SocialAuthButton(
+      image: 'https://img.icons8.com/?size=96&id=17949&format=png',
+      text: 'Sign Up with Google',
+      onPressed: () {
+        // Handle auth
+      },
+    );
+  }
+
+  SnackBar _buildSnackBar() {
+    return SnackBar(
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(16.0),
+      elevation: 8.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      backgroundColor: const Color(0xFF2E7D32),
+      content: const Row(
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            color: Colors.white,
+            size: 28.0,
+          ),
+          SizedBox(width: 16.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Success',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                Text(
+                  'Registration Successful!',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      duration: const Duration(seconds: 4),
+      action: SnackBarAction(
+        label: 'OK',
+        textColor: Colors.white,
+        onPressed: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        },
+      ),
     );
   }
 }
