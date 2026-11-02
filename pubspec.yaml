@@ -59,6 +59,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  assets:
+    - assets/images/
+    - assets/images/logo/
+
   fonts:
     - family: Roboto Flex
       fonts:

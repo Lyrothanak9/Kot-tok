@@ -7,7 +7,7 @@ import 'package:kot_tok/features/auth/widgets/social_auth_button.dart';
 import 'package:kot_tok/features/auth/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 
-import '../widgets/auth_buttom_prompt.dart';
+import '../widgets/auth_bottom_prompt.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
