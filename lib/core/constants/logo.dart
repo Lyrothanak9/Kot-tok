@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 
 class Logo extends StatelessWidget {
-  final double? width;
-  final double? height;
 
   const Logo({
     super.key,
-    this.width,
-    this.height,
   });
 
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
-    final containerWidth = width ?? screenSize.width * 0.4;
-    final containerHeight = height ?? screenSize.height * 0.15;
+    final containerWidth =  screenSize.width * 0.4;
+    final containerHeight =  screenSize.height * 0.15;
 
     return Container(
       width: containerWidth,

@@ -18,6 +18,8 @@ class AppColors {
   static const Color onSurfaceVariant = Color(0xFF454557);
   static const Color inverseSurface = Color(0xFF2F2F3A);
   static const Color inverseOnSurface = Color(0xFFF2EFFE);
+  static const Color textTitleColor = Colors.black;
+  static const Color textPrimaryColor = Color(0xFF919191);
 
   static const Color outline = Color(0xFF767589);
   static const Color outlineVariant = Color(0xFFC6C4DB);

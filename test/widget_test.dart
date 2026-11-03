@@ -1,22 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kot_tok/app/app.dart';
-import 'package:kot_tok/features/splash/screen/splash_screen.dart';
+import 'package:kot_tok/features/auth/screens/sign_in_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     await Supabase.initialize(
       url: 'https://hdvwaehfgrclnpxdlkyy.supabase.co',
       publishableKey: 'sb_publishable_w4Sf74zyDLcNh0ERUqdoeQ_JHINX269',
     );
   });
 
-  testWidgets('App smoke test - builds App and renders SplashScreen', (WidgetTester tester) async {
+  testWidgets('App smoke test - builds App and renders SignInScreen as initial screen', (WidgetTester tester) async {
     await tester.pumpWidget(const App());
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.byType(SplashScreen), findsOneWidget);
+    expect(find.byType(SignInScreen), findsOneWidget);
   });
 }

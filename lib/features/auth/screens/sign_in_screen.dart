@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart' hide TextField;
+import 'package:flutter/material.dart';
+import 'package:kot_tok/app/theme/app_colors.dart';
+import 'package:kot_tok/core/constants/logo.dart';
+import 'package:provider/provider.dart';
+import 'package:kot_tok/app/routes.dart';
 import 'package:kot_tok/features/auth/providers/auth_provider.dart';
 import 'package:kot_tok/features/auth/widgets/button.dart';
-import 'package:kot_tok/features/auth/widgets/image_profile_auth.dart';
 import 'package:kot_tok/features/auth/widgets/line_divider.dart';
 import 'package:kot_tok/features/auth/widgets/social_auth_button.dart';
 import 'package:kot_tok/features/auth/widgets/text_field.dart';
-import 'package:provider/provider.dart';
 
 import '../widgets/auth_bottom_prompt.dart';
 
@@ -33,20 +35,22 @@ class _SignInScreenState extends State<SignInScreen> {
     if (_formKey.currentState!.validate()) {
       final authProvider = context.read<AuthProvider>();
       final success = await authProvider.login(
-        _emailController.text,
+        _emailController.text.trim(),
         _passwordController.text,
       );
-      if (success && mounted) {
-        _emailController.clear();
-        _passwordController.clear();
-        _formKey.currentState?.reset();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sign In Successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pushReplacementNamed(context, '/main');
+      if (mounted) {
+        if (success) {
+          _emailController.clear();
+          _passwordController.clear();
+          Navigator.pushReplacementNamed(context, AppRoutes.main);
+        } else if (authProvider.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -54,118 +58,110 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
-    var screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenSize.width * 0.06,
-                vertical: screenSize.height * 0.03,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - (screenSize.height * 0.06),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 36,),
+                const Center(child: Logo()),
+                SizedBox(height: 16,),
+                // Sign In Headers
+                Center(
+                  child: Text("Welcome back", style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      color: AppColors.textTitleColor,
+                  )),
                 ),
-                child: IntrinsicHeight(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: screenSize.height * 0.02),
-                        Center(
-                          child: ImageProfileAuth(
-                            avatarSize: screenSize.height * 0.13,
-                            title: "Sign In",
-                          ),
-                        ),
-                        SizedBox(height: screenSize.height * 0.04),
-                        Text(
-                          "Email",
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        SizedBox(height: screenSize.height * 0.01),
-                        _buildEmailField(),
-                        SizedBox(height: screenSize.height * 0.02),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Password",
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            Text(
-                              "Forget Password?",
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: screenSize.height * 0.01),
-                        _buildPasswordField(),
-                        SizedBox(height: screenSize.height * 0.04),
-                        Button(
-                          onPressed: isLoading ? null : _submitForm,
-                          title: "Sign In",
-                          isLoading: isLoading,
-                        ),
-                        SizedBox(height: screenSize.height * 0.02),
-                        const LineDivider(),
-                        SizedBox(height: screenSize.height * 0.02),
-                        _buildSocialAuth(),
-                        const Spacer(),
-                        SizedBox(height: screenSize.height * 0.02),
-                        AuthBottomPrompt(
-                          promptText: "Not registered yet? ",
-                          actionText: "Sign Up >",
-                          onTap: () => Navigator.pushNamed(context, '/signup'),
-                        ),
+                const SizedBox(height: 6),
+                Center(
+                  child: Text("Please enter your details.", style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: AppColors.textPrimaryColor,
+                  )),
+                ),
+                SizedBox(height: screenSize.height * 0.03),
 
-                      ],
-                    ),
+                const SizedBox(height: 12),
+
+                Text("Email", style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.textTitleColor,
+                )),
+                const SizedBox(height: 8),
+                _buildEmailField(),
+                SizedBox(height: screenSize.height * 0.02),
+
+                Text("Password", style:  Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.textTitleColor,
+                )),
+                const SizedBox(height: 8),
+                _buildPasswordField(),
+                const SizedBox(height: 8),
+
+                // Forgot Password Layout
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
+                    child: const Text("Forgot Password", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
                   ),
                 ),
-              ),
-            );
-          },
+                SizedBox(height: screenSize.height * 0.03),
+
+                Button(onPressed: isLoading ? null : _submitForm, title: "Log in", isLoading: isLoading),
+                SizedBox(height: screenSize.height * 0.03),
+                const LineDivider(),
+                SizedBox(height: screenSize.height * 0.03),
+
+                SocialAuthButton(
+                  image: 'https://img.icons8.com/?size=96&id=17949&format=png',
+                  text: 'Log in with google',
+                  onPressed: () {},
+                ),
+                SizedBox(height: screenSize.height * 0.05),
+
+                AuthBottomPrompt(
+                  promptText: "Don't have an account? ",
+                  actionText: "Sign up",
+                  onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.signUp),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
+
+
   Widget _buildEmailField() {
     return MyTextField(
       controller: _emailController,
-      hintText: "Enter your email",
+      hintText: "enter your email",
       keyboardType: TextInputType.emailAddress,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Email cannot be empty';
-        }
-        if (!value.contains('@')) {
-          return 'Please enter a valid email';
-        }
-        return null;
-      },
+      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
     );
   }
 
   Widget _buildPasswordField() {
     return MyTextField(
       controller: _passwordController,
-      hintText: "Enter your password",
+      hintText: "enter password",
       obscureText: _isPasswordObscured,
       keyboardType: TextInputType.visiblePassword,
       suffixIcon: IconButton(
         icon: Icon(
-          _isPasswordObscured
-              ? Icons.visibility_off
-              : Icons.visibility,
-          color: Colors.grey[400],
+          _isPasswordObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          color: Colors.grey,
         ),
         onPressed: () {
           setState(() {
@@ -173,25 +169,7 @@ class _SignInScreenState extends State<SignInScreen> {
           });
         },
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Password cannot be empty';
-        }
-        if (value.length < 6) {
-          return 'Password must be at least 6 characters';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildSocialAuth() {
-    return SocialAuthButton(
-      image: 'https://img.icons8.com/?size=96&id=17949&format=png',
-      text: 'Sign Up with Google',
-      onPressed: () {
-
-      },
+      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
     );
   }
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kot_tok/app/routes.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/constants/logo.dart';
+import '../provider/splash_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,12 +20,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToNextScreen() async {
-    await Future.delayed(const Duration(milliseconds: 10000));
+    await Future.delayed(const Duration(milliseconds: 1000));
 
     if (!mounted) return;
 
     final bool isAuthenticated =
-        Supabase.instance.client.auth.currentSession == null;
+        context.read<SplashProvider>().isAuthenticated;
 
     Navigator.pushReplacementNamed(
       context,
@@ -41,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // App Logo
-            Logo(),
+            const Logo(),
             const SizedBox(height: 24),
 
             // App Title
