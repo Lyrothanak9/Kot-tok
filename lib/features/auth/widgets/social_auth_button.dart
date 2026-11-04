@@ -14,11 +14,9 @@ class SocialAuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
-
     return Container(
       width: double.infinity,
-      height: screenSize.height * 0.065,
+      height: 52, // Standard height: consistent with main Button across all screens
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -31,7 +29,7 @@ class SocialAuthButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed ?? () {},
-          borderRadius: BorderRadius.circular(12), // Matches container for the ripple effect
+          borderRadius: BorderRadius.circular(12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -48,7 +48,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.sizeOf(context);
+    final isTabletOrDesktop = screenSize.width >= 600;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -61,12 +62,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: screenSize.width * 0.08,
-            vertical: screenSize.height * 0.02,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTabletOrDesktop ? 24 : 20,
+                vertical: 16,
+              ),
+              child: _submitted
+                  ? _buildSuccessView(context)
+                  : _buildFormView(context, isLoading, screenSize),
+            ),
           ),
-          child: _submitted ? _buildSuccessView(context) : _buildFormView(context, isLoading, screenSize),
         ),
       ),
     );
@@ -79,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Center(child: ImageProfileAuth(title: "")),
-          SizedBox(height: screenSize.height * 0.02),
+          const SizedBox(height: 16),
           const Center(
             child: Text(
               "Reset Password",
@@ -94,7 +102,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
           ),
-          SizedBox(height: screenSize.height * 0.04),
+          const SizedBox(height: 32),
           const Text("Email", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           MyTextField(
@@ -103,7 +111,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             keyboardType: TextInputType.emailAddress,
             validator: (value) => value == null || value.isEmpty ? 'Required' : null,
           ),
-          SizedBox(height: screenSize.height * 0.04),
+          const SizedBox(height: 32),
           Button(
             onPressed: isLoading ? null : _submitForm,
             title: "Send Reset Link",

@@ -14,14 +14,13 @@ class Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
     final bool isDisabled = onPressed == null && !isLoading;
 
     return Container(
       width: double.infinity,
-      height: screenSize.height * 0.065,
+      height: 52, // Standard fixed height: accessible on all devices, never too thin or too tall
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(26),
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
@@ -40,7 +39,7 @@ class Button extends StatelessWidget {
           shadowColor: Colors.transparent,
           disabledBackgroundColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(26),
           ),
         ),
         child: isLoading

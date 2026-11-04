@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class AuthBottomPrompt extends StatelessWidget {
@@ -14,29 +15,27 @@ class AuthBottomPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          promptText,
-          style: Theme.of(context)
-              .textTheme
-              .bodyLarge
-              ?.copyWith(color: Colors.grey),
-        ),
-        GestureDetector(
-          onTap: onTap,
-          child: Text(
-            actionText,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(
-              color: Theme.of(context).primaryColor,
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium ??
+        const TextStyle(fontSize: 14);
+
+    return Center(
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          text: promptText,
+          style: bodyStyle.copyWith(color: Colors.grey.shade600),
+          children: [
+            TextSpan(
+              text: actionText,
+              style: bodyStyle.copyWith(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+              recognizer: TapGestureRecognizer()..onTap = onTap,
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
