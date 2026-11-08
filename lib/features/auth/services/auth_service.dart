@@ -9,20 +9,38 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    return await _client.auth.signInWithPassword(
+    final response = await _client.auth.signInWithPassword(
       email: email,
       password: password,
     );
+    if (response.user != null) {
+      try {
+        await _client.from('profiles').upsert({
+          'id': response.user!.id,
+          'full_name': response.user!.userMetadata?['name'] ?? email.split('@').first,
+        }, onConflict: 'id');
+      } catch (_) {}
+    }
+    return response;
   }
 
   Future<AuthResponse> signUp({
     required String email,
     required String password,
   }) async {
-    return await _client.auth.signUp(
+    final response = await _client.auth.signUp(
       email: email,
       password: password,
     );
+    if (response.user != null) {
+      try {
+        await _client.from('profiles').upsert({
+          'id': response.user!.id,
+          'full_name': response.user!.userMetadata?['name'] ?? email.split('@').first,
+        }, onConflict: 'id');
+      } catch (_) {}
+    }
+    return response;
   }
 
   Future<void> resetPassword({

@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../features/auth/providers/auth_provider.dart';
 import '../features/Navigation/provider/bottom_app_bar_provider.dart';
+import '../features/home/providers/category_provider.dart';
+import '../features/home/providers/home_provider.dart';
 import '../features/splash/provider/splash_provider.dart';
 
 class App extends StatelessWidget {
@@ -17,6 +19,8 @@ class App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => BottomAppBarProvider()),
         ChangeNotifierProvider(create: (_) => SplashProvider()),
+        ChangeNotifierProvider(create: (_) => HomeProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider())
       ],
       child: MaterialApp(
         theme: AppTheme.lightTheme,

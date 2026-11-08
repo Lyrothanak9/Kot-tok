@@ -1,49 +1,77 @@
-# Project Structure Summary
-
-```
-lib/
-├── app/
-│   ├── app.dart                   # MaterialApp, Provider setup & initial route
-│   ├── routes.dart                # AppRoutes mapping (/login, /signup, /main)
-│   └── theme/
-│       ├── app_colors.dart        # Color design tokens & palette
-│       ├── app_theme.dart         # Material Design 3 ThemeData configuration
-│       └── text_styles.dart       # Typography styles & Roboto Flex font setup
-│
-├── core/
-│   ├── constants/                 # App constants & keys
-│   └── services/
-│       └── supabase_service.dart  # Supabase client singleton wrapper
-│
-├── features/
-│   ├── auth/
-│   │   ├── models/
-│   │   │   └── user_model.dart    # UserModel data class
-│   │   ├── providers/
-│   │   │   └── auth_provider.dart # Auth State Management (login, signUp)
-│   │   ├── services/
-│   │   │   └── auth_service.dart  # Remote Auth API integration
-│   │   ├── screens/
-│   │   │   ├── sign_in_screen.dart # Sign In screen UI & form logic
-│   │   │   └── sign_up_screen.dart # Sign Up screen UI & form logic
-│   │   └── widgets/
-│   │       ├── auth_buttom_prompt.dart  # Reusable bottom navigation prompt link
-│   │       ├── button.dart              # Gradient submit button with spinner
-│   │       ├── image_profile_auth.dart  # Responsive profile avatar & header title
-│   │       ├── line_divider.dart        # "Or continue with" section divider
-│   │       ├── social_auth_button.dart  # Responsive full-width social auth button
-│   │       └── text_field.dart          # Reusable text input field with validation
+D:/Mobile-App-Project/
+├── android/                         # Android native project configuration
+├── assets/                          # Static assets (fonts, images, logo)
+│   ├── fonts/                       # Roboto Flex font assets
+│   └── images/                      # App icons and illustrations
+├── ios/                             # iOS native project configuration
+├── lib/                             # Core Flutter application source code
+│   ├── app/                         # App-wide routing and design system
+│   │   ├── app.dart                 # Root MaterialApp & MultiProvider setup
+│   │   ├── routes.dart              # AppRoutes registry
+│   │   └── theme/
+│   │       ├── app_colors.dart      # Design token color palette
+│   │       ├── app_theme.dart       # Material 3 ThemeData definition
+│   │       └── text_styles.dart     # Typography styles
 │   │
-│   └── home/
-│       ├── models/                # Home data models
-│       ├── providers/
-│       │   └── navigation_provider.dart # Bottom navigation index manager
-│       ├── services/              # Home API services
-│       ├── screens/
-│       │   ├── home_screen.dart             # Home tab screen
-│       │   ├── main_navigation_screen.dart  # IndexedStack + BottomNavigationBar
-│       │   └── profile_screen.dart          # Profile tab screen
-│       └── widgets/               # Home feature widgets
+│   ├── core/                        # Core shared modules
+│   │   ├── constants/
+│   │   │   └── logo.dart            # Logo asset constants
+│   │   └── services/
+│   │       └── supabase_service.dart# Supabase client singleton
+│   │
+│   ├── features/                    # Feature modules
+│   │   ├── Navigation/              # Main app shell & bottom bar
+│   │   │   ├── provider/
+│   │   │   │   └── bottom_app_bar_provider.dart
+│   │   │   ├── screen/
+│   │   │   │   └── main_navigation_screen.dart
+│   │   │   └── widgets/
+│   │   │       └── app_bar.dart
+│   │   │
+│   │   ├── auth/                    # Authentication feature
+│   │   │   ├── models/
+│   │   │   │   └── user_model.dart
+│   │   │   ├── providers/
+│   │   │   │   └── auth_provider.dart
+│   │   │   ├── screens/
+│   │   │   │   ├── forget_password_screen.dart
+│   │   │   │   ├── sign_in_screen.dart
+│   │   │   │   └── sign_up_screen.dart
+│   │   │   ├── services/
+│   │   │   │   └── auth_service.dart
+│   │   │   └── widgets/
+│   │   │       ├── auth_bottom_prompt.dart
+│   │   │       ├── button.dart
+│   │   │       ├── image_profile_auth.dart
+│   │   │       ├── line_divider.dart
+│   │   │       ├── social_auth_button.dart
+│   │   │       └── text_field.dart
+│   │   │
+│   │   ├── home/                    # Notes & dashboard feature
+│   │   │   ├── models/
+│   │   │   │   ├── category_model.dart
+│   │   │   │   └── note_model.dart
+│   │   │   ├── providers/
+│   │   │   │   ├── home_provider.dart
+│   │   │   │   └── note_editor_provider.dart
+│   │   │   ├── screens/
+│   │   │   │   ├── home_screen.dart
+│   │   │   │   └── note_editor_screen.dart
+│   │   │   ├── services/
+│   │   │   │   ├── home_service.dart
+│   │   │   │   └── note_service.dart
+│   │   │   └── widgets/
+│   │   │       ├── pinned_notes_list.dart
+│   │   │       ├── recent_notes_list.dart
+│   │   │       └── summary_stats_card.dart
+│   │   │
+│   │   └── splash/                  # Launch / Splash screen
+│   │       ├── provider/
+│   │       │   └── splash_provider.dart
+│   │       └── screen/
+│   │           └── splash_screen.dart
+│   │
+│   └── main.dart                    # App entrypoint & Supabase initialization
 │
-└── main.dart                       # App entry point & Supabase initialization
-```
+├── pubspec.yaml                     # Dependencies and asset registrations
+└── README.md                        # Project documentation

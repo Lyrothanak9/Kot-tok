@@ -105,11 +105,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   IconButton(
                     icon: Icon(
-                      isGridView ? Icons.grid_view_outlined : Icons.view_agenda_outlined,
+                      isGridView ? Icons.view_agenda_outlined : Icons.grid_view_outlined,
                       color: const Color(0xFF5F6368),
                       size: 24,
                     ),
-                    tooltip: isGridView ? 'Grid view' : 'Single-column view',
+                    tooltip: isGridView ? 'Single-column view' : 'Grid view',
                     splashRadius: 20,
                     onPressed: onLayoutTogglePressed ?? () {},
                   ),
