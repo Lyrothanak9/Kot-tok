@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../app/theme/app_colors.dart';
 import '../providers/category_provider.dart';
 import '../providers/home_provider.dart';
 import 'dialog/create_label_dialog.dart';
@@ -13,15 +14,20 @@ class DrawerApp extends StatefulWidget {
 }
 
 class _DrawerAppState extends State<DrawerApp> {
-  String _selectedItem = 'Notes';
+  // Tracks system items like 'Archive' or 'Trash' when not filtering by category
+  String? _selectedSystemItem;
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final drawerWidth = (screenWidth * 0.78).clamp(280.0, 320.0);
 
-    // Connect to your new CategoryProvider
+    // Watch both providers so selection and categories update reactively
+    final homeProvider = context.watch<HomeProvider>();
     final categoryProvider = context.watch<CategoryProvider>();
+
+    // "Notes" is selected when no category is active and no system item is selected
+    final isNotesSelected = _selectedSystemItem == null && homeProvider.activeCategoryId == null;
 
     return Drawer(
       width: drawerWidth,
@@ -55,18 +61,16 @@ class _DrawerAppState extends State<DrawerApp> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
+                  // 1. Default Notes Item
                   _buildDrawerItem(
                     icon: Icons.lightbulb_outline,
                     title: 'Notes',
+                    isSelected: isNotesSelected,
                     onTap: () {
-                      // Passing null clears the category filter to show all notes
-                      context.read<HomeProvider>().filterByCategory(null, 'Notes');
+                      setState(() => _selectedSystemItem = null);
+                      homeProvider.filterByCategory(null, 'Notes');
                     },
                   ),
-                  // _buildDrawerItem(
-                  //   icon: Icons.notifications_none,
-                  //   title: 'Reminders',
-                  // ),
 
                   const Divider(height: 24, thickness: 1, color: Color(0xFFE0E0E0)),
 
@@ -90,7 +94,6 @@ class _DrawerAppState extends State<DrawerApp> {
                               context,
                               categoryProvider: categoryProvider,
                               onCategoryDeleted: (deletedId) {
-                                final homeProvider = context.read<HomeProvider>();
                                 if (homeProvider.activeCategoryId == deletedId) {
                                   homeProvider.filterByCategory(null, 'Notes');
                                 }
@@ -131,31 +134,33 @@ class _DrawerAppState extends State<DrawerApp> {
                       ),
                     )
                   else
-                  // Map the Supabase categories to your UI items
-                    ...categoryProvider.categories.map(
-                          (category) => _buildDrawerItem(
+                  // Map categories: active highlight automatically follows activeCategoryId
+                    ...categoryProvider.categories.map((category) {
+                      final isSelected = homeProvider.activeCategoryId == category.id;
+                      return _buildDrawerItem(
                         icon: Icons.label_outline,
                         title: category.name,
+                        isSelected: isSelected,
                         onTap: () {
-                          // Pass the specific category ID to filter the Home Screen
-                          context.read<HomeProvider>().filterByCategory(category.id, category.name);
+                          setState(() => _selectedSystemItem = null);
+                          homeProvider.filterByCategory(category.id, category.name);
                         },
-                      ),
-                    ),
+                      );
+                    }),
 
+                  // Create New Label Button
                   _buildDrawerItem(
                     icon: Icons.add,
                     title: 'Create new label',
-                    isSelectable: false,
+                    isSelected: false,
                     closeDrawerOnTap: false,
                     onTap: () {
                       CreateLabelDialog.show(
                         context,
                         categoryProvider: categoryProvider,
                         onCategoryCreated: (newCategory) {
-                          context
-                              .read<HomeProvider>()
-                              .filterByCategory(newCategory.id, newCategory.name);
+                          setState(() => _selectedSystemItem = null);
+                          homeProvider.filterByCategory(newCategory.id, newCategory.name);
                         },
                       );
                     },
@@ -167,20 +172,34 @@ class _DrawerAppState extends State<DrawerApp> {
                   _buildDrawerItem(
                     icon: Icons.archive_outlined,
                     title: 'Archive',
+                    isSelected: _selectedSystemItem == 'Archive',
+                    onTap: () {
+                      setState(() => _selectedSystemItem = 'Archive');
+                    },
                   ),
                   _buildDrawerItem(
                     icon: Icons.delete_outline,
                     title: 'Trash',
+                    isSelected: _selectedSystemItem == 'Trash',
+                    onTap: () {
+                      setState(() => _selectedSystemItem = 'Trash');
+                    },
                   ),
                   _buildDrawerItem(
                     icon: Icons.settings_outlined,
                     title: 'Settings',
-                    isSelectable: false,
+                    isSelected: false,
+                    onTap: () {
+                      // TODO: Navigate to settings
+                    },
                   ),
                   _buildDrawerItem(
                     icon: Icons.help_outline,
                     title: 'Help & feedback',
-                    isSelectable: false,
+                    isSelected: false,
+                    onTap: () {
+                      // TODO: Navigate to help
+                    },
                   ),
                 ],
               ),
@@ -206,19 +225,29 @@ class _DrawerAppState extends State<DrawerApp> {
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
-    bool isSelectable = true,
+    required bool isSelected,
     bool closeDrawerOnTap = true,
     VoidCallback? onTap,
   }) {
-    final bool isSelected = isSelectable && _selectedItem == title;
-    const Color activeBackgroundColor = Color(0xFF4A34B8);
-
-    return Padding(
+    return Container(
       padding: const EdgeInsets.only(right: 12.0),
       child: ListTile(
         dense: true,
         visualDensity: const VisualDensity(vertical: -1),
         contentPadding: const EdgeInsets.only(left: 24.0, right: 16.0),
+
+        // Tap & Selection Colors follow your button primary color
+        selected: isSelected,
+        selectedTileColor: AppColors.primary,
+        splashColor: AppColors.primary.withValues(alpha: 0.15),
+        hoverColor: AppColors.primary.withValues(alpha: 0.08),
+
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(30),
+            bottomRight: Radius.circular(30),
+          ),
+        ),
         leading: Icon(
           icon,
           size: 22,
@@ -232,27 +261,13 @@ class _DrawerAppState extends State<DrawerApp> {
             color: isSelected ? Colors.white : const Color(0xFF202124),
           ),
         ),
-        selected: isSelected,
-        selectedTileColor: activeBackgroundColor,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(
-            right: Radius.circular(30),
-          ),
-        ),
         onTap: () {
-          if (isSelectable) {
-            setState(() {
-              _selectedItem = title;
-            });
-          }
-
           if (closeDrawerOnTap) {
             final navigator = Navigator.of(context);
             if (navigator.canPop()) {
               navigator.pop();
             }
           }
-
           if (onTap != null) onTap();
         },
       ),

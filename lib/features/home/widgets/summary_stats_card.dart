@@ -32,6 +32,7 @@ class SummaryStatsCard extends StatelessWidget {
       children: [
         Expanded(
           child: _buildStatCard(
+            context: context,
             title: 'Total Notes',
             count: provider.totalNotes.toString(),
             icon: Icons.note_alt_outlined,
@@ -41,6 +42,7 @@ class SummaryStatsCard extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _buildStatCard(
+            context: context,
             title: 'Categories',
             count: provider.totalCategories.toString(),
             icon: Icons.folder_outlined,
@@ -52,17 +54,21 @@ class SummaryStatsCard extends StatelessWidget {
   }
 
   Widget _buildStatCard({
+    required BuildContext context,
     required String title,
     required String count,
     required IconData icon,
     required Color color,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: isDark ? color.withOpacity(0.15) : color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: isDark ? color.withOpacity(0.3) : color.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,11 +77,19 @@ class SummaryStatsCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             count,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
           Text(
             title,
-            style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 14,
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

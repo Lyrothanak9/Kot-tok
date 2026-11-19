@@ -17,6 +17,7 @@ class RecentNoteCard extends StatelessWidget {
     final title = note.title;
     final content = note.content ?? '';
     final imageUrls = note.imageUrls;
+    final theme = Theme.of(context);
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -24,9 +25,9 @@ class RecentNoteCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -50,7 +51,11 @@ class RecentNoteCard extends StatelessWidget {
                 children: [
                   Text(
                     title.isEmpty ? 'Untitled' : title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 16,
+                      color: theme.colorScheme.onSurface,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -59,7 +64,7 @@ class RecentNoteCard extends StatelessWidget {
                     content.isEmpty ? 'Empty note' : content,
                     style: TextStyle(
                       fontSize: 14,
-                      color: content.isEmpty ? Colors.grey : Colors.black54,
+                      color: content.isEmpty ? theme.colorScheme.onSurface.withOpacity(0.4) : theme.colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
@@ -67,7 +72,7 @@ class RecentNoteCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Updated: ${_formatDate(displayDate)}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withOpacity(0.5)),
                   ),
                 ],
               ),
@@ -90,15 +95,16 @@ class PinnedNoteCard extends StatelessWidget {
     final title = note.title;
     final content = note.content ?? '';
     final imageUrls = note.imageUrls;
+    final theme = Theme.of(context);
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -126,12 +132,16 @@ class PinnedNoteCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           title.isEmpty ? 'Untitled' : title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 15,
+                            color: theme.colorScheme.onSurface,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const Icon(Icons.push_pin, size: 16),
+                      Icon(Icons.push_pin, size: 16, color: theme.colorScheme.onSurface),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -139,7 +149,7 @@ class PinnedNoteCard extends StatelessWidget {
                     content.isEmpty ? 'Empty note' : content,
                     style: TextStyle(
                       fontSize: 13,
-                      color: content.isEmpty ? Colors.grey : Colors.black87,
+                      color: content.isEmpty ? theme.colorScheme.onSurface.withOpacity(0.4) : theme.colorScheme.onSurfaceVariant,
                     ),
                     maxLines: imageUrls.isNotEmpty ? 2 : 4,
                     overflow: TextOverflow.ellipsis,
