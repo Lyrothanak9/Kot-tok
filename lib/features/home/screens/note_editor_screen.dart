@@ -7,7 +7,9 @@ import '../providers/category_provider.dart';
 import '../providers/note_editor_provider.dart';
 import '../models/note_model.dart';
 import '../widgets/dialog/create_label_dialog.dart';
-import '../widgets/dialog/delete_note_dialog.dart';
+import '../widgets/dialog/attachment_bottom_sheet.dart';
+import '../widgets/dialog/more_options_bottom_sheet.dart';
+import '../widgets/image_tile.dart';
 
 class NoteEditorScreen extends StatelessWidget {
   final NoteModel? note; // Pass a note to edit, or null to create a new one
@@ -119,7 +121,7 @@ class _NoteEditorContent extends StatelessWidget {
                       ...provider.remoteImageUrls.asMap().entries.map((entry) {
                         final idx = entry.key;
                         final url = entry.value;
-                        return _buildImageTile(
+                        return ImageTile(
                           image: Image.network(
                             url,
                             fit: BoxFit.cover,
@@ -151,7 +153,7 @@ class _NoteEditorContent extends StatelessWidget {
                       ...provider.localImages.asMap().entries.map((entry) {
                         final idx = entry.key;
                         final file = entry.value;
-                        return _buildImageTile(
+                        return ImageTile(
                           image: kIsWeb 
                               ? Image.network(file.path, fit: BoxFit.cover) 
                               : Image.file(
@@ -367,7 +369,7 @@ class _NoteEditorContent extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.add_box_outlined, color: Colors.black54),
-                    onPressed: () => _showAddAttachmentMenu(context, provider),
+                    onPressed: () => AttachmentBottomSheet.show(context, provider),
                   ),
                   IconButton(
                     icon: const Icon(Icons.palette_outlined, color: Colors.black54),
@@ -382,103 +384,12 @@ class _NoteEditorContent extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.more_vert, color: Colors.black54),
-                onPressed: () => _showMoreOptions(context, provider),
+                onPressed: () => MoreOptionsBottomSheet.show(context, provider),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildImageTile({
-    required Widget image,
-    required VoidCallback onRemove,
-  }) {
-    return Container(
-      width: 180,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(11),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            image,
-            Positioned(
-              top: 6,
-              right: 6,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 18),
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(4),
-                  onPressed: onRemove,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddAttachmentMenu(BuildContext context, NoteEditorProvider provider) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.check_box_outlined),
-                title: Text(provider.isChecklistMode ? 'Hide tick boxes' : 'Tick boxes'),
-                onTap: () {
-                  Navigator.pop(context);
-                  provider.toggleChecklistMode();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.image_outlined),
-                title: const Text('Add image'),
-                onTap: () {
-                  Navigator.pop(context);
-                  provider.pickImage();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showMoreOptions(BuildContext context, NoteEditorProvider provider) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Delete'),
-                onTap: () {
-                  Navigator.pop(context);
-                  DeleteNoteDialog.show(context, provider);
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
