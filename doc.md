@@ -52,15 +52,23 @@ D:/Mobile-App-Project/
 │   │   │   │   ├── category_model.dart
 │   │   │   │   └── note_model.dart
 │   │   │   ├── providers/
+│   │   │   │   ├── category_provider.dart
 │   │   │   │   ├── home_provider.dart
 │   │   │   │   └── note_editor_provider.dart
 │   │   │   ├── screens/
 │   │   │   │   ├── home_screen.dart
 │   │   │   │   └── note_editor_screen.dart
 │   │   │   ├── services/
+│   │   │   │   ├── category_service.dart
 │   │   │   │   ├── home_service.dart
 │   │   │   │   └── note_service.dart
 │   │   │   └── widgets/
+│   │   │       ├── dialog/
+│   │   │       │   ├── create_label_dialog.dart
+│   │   │       │   ├── delete_note_dialog.dart
+│   │   │       │   ├── edit_label_dialog.dart
+│   │   │       │   └── manage_labels_dialog.dart
+│   │   │       ├── drawer_app.dart
 │   │   │       ├── pinned_notes_list.dart
 │   │   │       ├── recent_notes_list.dart
 │   │   │       └── summary_stats_card.dart

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/category_provider.dart';
+import '../providers/home_provider.dart';
+import 'dialog/create_label_dialog.dart';
+import 'dialog/manage_labels_dialog.dart';
 
 class DrawerApp extends StatefulWidget {
   const DrawerApp({super.key});
@@ -55,11 +58,15 @@ class _DrawerAppState extends State<DrawerApp> {
                   _buildDrawerItem(
                     icon: Icons.lightbulb_outline,
                     title: 'Notes',
+                    onTap: () {
+                      // Passing null clears the category filter to show all notes
+                      context.read<HomeProvider>().filterByCategory(null, 'Notes');
+                    },
                   ),
-                  _buildDrawerItem(
-                    icon: Icons.notifications_none,
-                    title: 'Reminders',
-                  ),
+                  // _buildDrawerItem(
+                  //   icon: Icons.notifications_none,
+                  //   title: 'Reminders',
+                  // ),
 
                   const Divider(height: 24, thickness: 1, color: Color(0xFFE0E0E0)),
 
@@ -79,7 +86,16 @@ class _DrawerAppState extends State<DrawerApp> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            // TODO: Navigate to edit labels screen
+                            ManageLabelsDialog.show(
+                              context,
+                              categoryProvider: categoryProvider,
+                              onCategoryDeleted: (deletedId) {
+                                final homeProvider = context.read<HomeProvider>();
+                                if (homeProvider.activeCategoryId == deletedId) {
+                                  homeProvider.filterByCategory(null, 'Notes');
+                                }
+                              },
+                            );
                           },
                           child: const Text(
                             'Edit',
@@ -119,7 +135,11 @@ class _DrawerAppState extends State<DrawerApp> {
                     ...categoryProvider.categories.map(
                           (category) => _buildDrawerItem(
                         icon: Icons.label_outline,
-                        title: category.name, // Uses the name from CategoryModel
+                        title: category.name,
+                        onTap: () {
+                          // Pass the specific category ID to filter the Home Screen
+                          context.read<HomeProvider>().filterByCategory(category.id, category.name);
+                        },
                       ),
                     ),
 
@@ -127,8 +147,17 @@ class _DrawerAppState extends State<DrawerApp> {
                     icon: Icons.add,
                     title: 'Create new label',
                     isSelectable: false,
+                    closeDrawerOnTap: false,
                     onTap: () {
-                      // TODO: Handle creating a new label
+                      CreateLabelDialog.show(
+                        context,
+                        categoryProvider: categoryProvider,
+                        onCategoryCreated: (newCategory) {
+                          context
+                              .read<HomeProvider>()
+                              .filterByCategory(newCategory.id, newCategory.name);
+                        },
+                      );
                     },
                   ),
 
@@ -178,6 +207,7 @@ class _DrawerAppState extends State<DrawerApp> {
     required IconData icon,
     required String title,
     bool isSelectable = true,
+    bool closeDrawerOnTap = true,
     VoidCallback? onTap,
   }) {
     final bool isSelected = isSelectable && _selectedItem == title;
@@ -215,12 +245,15 @@ class _DrawerAppState extends State<DrawerApp> {
               _selectedItem = title;
             });
           }
-          if (onTap != null) onTap();
 
-          final navigator = Navigator.of(context);
-          if (navigator.canPop()) {
-            navigator.pop();
+          if (closeDrawerOnTap) {
+            final navigator = Navigator.of(context);
+            if (navigator.canPop()) {
+              navigator.pop();
+            }
           }
+
+          if (onTap != null) onTap();
         },
       ),
     );

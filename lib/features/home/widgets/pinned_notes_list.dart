@@ -49,6 +49,7 @@ class PinnedNotesList extends StatelessWidget {
               child: _buildKeepStyleCard(
                 title: note.title,
                 content: note.content ?? '',
+                imageUrls: note.imageUrls,
               ),
             );
           },
@@ -57,40 +58,63 @@ class PinnedNotesList extends StatelessWidget {
     );
   }
 
-  Widget _buildKeepStyleCard({required String title, required String content}) {
+  Widget _buildKeepStyleCard({
+    required String title,
+    required String content,
+    List<String> imageUrls = const [],
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          if (imageUrls.isNotEmpty)
+            Container(
+              height: 70,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(imageUrls.first),
+                  fit: BoxFit.cover,
                 ),
               ),
-              const Icon(Icons.push_pin, size: 16, ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            content.isEmpty ? 'Empty note' : content,
-            style: TextStyle(
-              fontSize: 14,
-              color: content.isEmpty ? Colors.grey : Colors.black87,
             ),
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title.isEmpty ? 'Untitled' : title,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.push_pin, size: 16),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  content.isEmpty ? 'Empty note' : content,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: content.isEmpty ? Colors.grey : Colors.black87,
+                  ),
+                  maxLines: imageUrls.isNotEmpty ? 2 : 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

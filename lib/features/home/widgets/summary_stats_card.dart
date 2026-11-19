@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kot_tok/app/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
 
@@ -34,7 +35,7 @@ class SummaryStatsCard extends StatelessWidget {
             title: 'Total Notes',
             count: provider.totalNotes.toString(),
             icon: Icons.note_alt_outlined,
-            color: Colors.blueAccent,
+            color: AppColors.primary,
           ),
         ),
         const SizedBox(width: 16),

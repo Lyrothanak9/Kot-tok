@@ -99,4 +99,62 @@ void main() {
     expect(find.text('Title'), findsOneWidget);
     expect(find.text('Note'), findsOneWidget);
   });
+
+  testWidgets('MainNavigationScreen - tapping Check Box opens NoteEditorScreen in checklist mode', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => BottomAppBarProvider()),
+          ChangeNotifierProvider(create: (_) => HomeProvider()),
+          ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ],
+        child: const MaterialApp(
+          home: MainNavigationScreen(),
+        ),
+      ),
+    );
+
+    final checkBoxButton = find.byTooltip('Check Box');
+    expect(checkBoxButton, findsOneWidget);
+    await tester.tap(checkBoxButton);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NoteEditorScreen), findsOneWidget);
+    expect(find.byType(Checkbox), findsOneWidget);
+    expect(find.text('List item'), findsWidgets);
+
+    // Test adding another checkbox via tapping "+ List item"
+    await tester.tap(find.text('List item').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(Checkbox), findsNWidgets(2));
+  });
+
+  testWidgets('NoteEditorScreen - pasting multiline text creates multiple checkbox items', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => BottomAppBarProvider()),
+          ChangeNotifierProvider(create: (_) => HomeProvider()),
+          ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ],
+        child: const MaterialApp(
+          home: NoteEditorScreen(isChecklist: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Checkbox), findsOneWidget);
+
+    // Enter multiline text into the first checklist TextField
+    final firstItemFinder = find.byType(TextField).last; // first TextField is Title, second is list item
+    await tester.enterText(firstItemFinder, 'Apples\nBananas\nOranges');
+    await tester.pumpAndSettle();
+
+    // Now there should be 3 checkboxes
+    expect(find.byType(Checkbox), findsNWidgets(3));
+    expect(find.text('Apples'), findsOneWidget);
+    expect(find.text('Bananas'), findsOneWidget);
+    expect(find.text('Oranges'), findsOneWidget);
+  });
 }

@@ -17,6 +17,10 @@ class HomeProvider extends ChangeNotifier {
   List<NoteModel> _pinnedNotes = [];
   List<NoteModel> _recentNotes = [];
 
+  // Filter State
+  String? activeCategoryId;
+  String activeCategoryName = 'Notes';
+
   // 2. Public Getters (Read-only access for the UI)
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -37,6 +41,8 @@ class HomeProvider extends ChangeNotifier {
         _recentNotes = [];
         _errorMessage = null;
         _isLoading = false;
+        activeCategoryId = null;
+        activeCategoryName = 'Notes';
         notifyListeners();
       }
     });
@@ -65,17 +71,16 @@ class HomeProvider extends ChangeNotifier {
     try {
       _isLoading = true;
       _errorMessage = null;
-      notifyListeners(); // Tell UI to show loading indicators
+      notifyListeners();
 
-      // Future.wait runs all three Supabase queries at the same time,
-      // making your app load significantly faster than awaiting them one by one.
+      // Run all three Supabase queries concurrently.
+      // Pass the activeCategoryId to filter the notes if a label is selected.
       final results = await Future.wait([
         _homeService.getSummaryStats(),
-        _homeService.getPinnedNotes(),
-        _homeService.getRecentNotes(),
+        _homeService.getPinnedNotes(categoryId: activeCategoryId),
+        _homeService.getRecentNotes(categoryId: activeCategoryId),
       ]);
 
-      // Parse the results from the Future.wait array
       final stats = results[0] as Map<String, int>;
       _totalNotes = stats['notes_count'] ?? 0;
       _totalCategories = stats['categories_count'] ?? 0;
@@ -85,14 +90,21 @@ class HomeProvider extends ChangeNotifier {
 
     } catch (e) {
       _errorMessage = 'Failed to load data: ${e.toString()}';
-      debugPrint(_errorMessage); // Helpful for console debugging
+      debugPrint(_errorMessage);
     } finally {
       _isLoading = false;
-      notifyListeners(); // Tell UI to rebuild with the new data or error message
+      notifyListeners();
     }
   }
 
-  // 4. Helper method for Pull-to-Refresh functionality
+  // 4. Triggered by Drawer to filter notes
+  void filterByCategory(String? categoryId, String categoryName) {
+    activeCategoryId = categoryId;
+    activeCategoryName = categoryName;
+    loadHomeData();
+  }
+
+  // 5. Helper method for Pull-to-Refresh functionality
   Future<void> refresh() async {
     await loadHomeData();
   }

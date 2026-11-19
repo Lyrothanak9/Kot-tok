@@ -89,42 +89,67 @@ class RecentNotesList extends StatelessWidget {
         title: note.title,
         content: note.content ?? '',
         date: _formatDate(displayDate),
+        imageUrls: note.imageUrls,
       ),
     );
   }
 
-  Widget _buildListCard({required String title, required String content, required String date}) {
+  Widget _buildListCard({
+    required String title,
+    required String content,
+    required String date,
+    List<String> imageUrls = const [],
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title.isEmpty ? 'Untitled' : title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            content.isEmpty ? 'Empty note' : content,
-            style: TextStyle(
-              fontSize: 14,
-              color: content.isEmpty ? Colors.grey : Colors.black54,
+          if (imageUrls.isNotEmpty)
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(imageUrls.first),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Updated: $date',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.isEmpty ? 'Untitled' : title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  content.isEmpty ? 'Empty note' : content,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: content.isEmpty ? Colors.grey : Colors.black54,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Updated: $date',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ],
       ),

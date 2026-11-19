@@ -25,10 +25,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     HomeScreen(),
   ];
 
-  Future<void> _openNoteEditor({NoteModel? note}) async {
+  Future<void> _openNoteEditor({NoteModel? note, bool isChecklist = false}) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => NoteEditorScreen(note: note),
+        builder: (_) => NoteEditorScreen(note: note, isChecklist: isChecklist),
       ),
     );
     if (mounted) {
@@ -74,6 +74,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         fabLocation: provider.fabLocation,
         shape: provider.showNotch ? const CircularNotchedRectangle() : null,
         onOpenEditor: () => _openNoteEditor(),
+        onOpenChecklist: () => _openNoteEditor(isChecklist: true),
       ),
     );
   }
@@ -84,11 +85,13 @@ class _BottomAppBar extends StatelessWidget {
     required this.fabLocation,
     this.shape,
     required this.onOpenEditor,
+    this.onOpenChecklist,
   });
 
   final FloatingActionButtonLocation fabLocation;
   final NotchedShape? shape;
   final VoidCallback onOpenEditor;
+  final VoidCallback? onOpenChecklist;
 
   static final List<FloatingActionButtonLocation> centerLocations =
       <FloatingActionButtonLocation>[
@@ -116,7 +119,7 @@ class _BottomAppBar extends StatelessWidget {
                 IconButton(
                   tooltip: 'Check Box',
                   icon: const Icon(Icons.check_box_outlined),
-                  onPressed: onOpenEditor,
+                  onPressed: onOpenChecklist ?? onOpenEditor,
                 ),
                 if (isCenter) const Spacer(),
                 IconButton(

@@ -40,4 +40,33 @@ class CategoryProvider extends ChangeNotifier {
       return null;
     }
   }
+
+  Future<CategoryModel?> updateCategory(String id, String newName) async {
+    try {
+      final updatedCategory = await _categoryService.updateCategory(id, newName);
+
+      // Update the local list to reflect the change immediately
+      final index = categories.indexWhere((c) => c.id == id);
+      if (index != -1) {
+        categories[index] = updatedCategory;
+        notifyListeners();
+      }
+      return updatedCategory;
+    } catch (e) {
+      debugPrint("Error updating category: $e");
+      return null;
+    }
+  }
+
+  Future<bool> deleteCategory(String id) async {
+    try {
+      await _categoryService.deleteCategory(id);
+      categories.removeWhere((c) => c.id == id);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint("Error deleting category: $e");
+      return false;
+    }
+  }
 }
