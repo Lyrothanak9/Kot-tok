@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({
+import '../../../app/routes.dart';
+import '../../home/widgets/dialog/profile.dart';
+
+class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const SearchAppBar({
     super.key,
     this.onMenuPressed,
     this.onLayoutTogglePressed,
@@ -115,7 +118,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 4),
                   GestureDetector(
-                    onTap: onProfilePressed,
+                    onTap: onProfilePressed ?? () {
+                      final rootNavigator = Navigator.of(context, rootNavigator: true);
+                      AccountCardDialog.show(
+                        context,
+                        onSignedOut: () {
+                          rootNavigator.pushNamedAndRemoveUntil(
+                            AppRoutes.login,
+                            (route) => false,
+                          );
+                        },
+                      );
+                    },
                     child: Container(
                       width: 32,
                       height: 32,

@@ -10,6 +10,7 @@ class HomeProvider extends ChangeNotifier {
 
   // 1. Private State Variables
   bool _isLoading = false;
+  bool _isDisposed = false;
   String? _errorMessage;
 
   int _totalNotes = 0;
@@ -20,14 +21,32 @@ class HomeProvider extends ChangeNotifier {
   // Filter State
   String? activeCategoryId;
   String activeCategoryName = 'Notes';
+  String _searchQuery = '';
 
   // 2. Public Getters (Read-only access for the UI)
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get totalNotes => _totalNotes;
   int get totalCategories => _totalCategories;
-  List<NoteModel> get pinnedNotes => _pinnedNotes;
-  List<NoteModel> get recentNotes => _recentNotes;
+  String get searchQuery => _searchQuery;
+  List<NoteModel> get pinnedNotes => _filterNotes(_pinnedNotes);
+  List<NoteModel> get recentNotes => _filterNotes(_recentNotes);
+
+  List<NoteModel> _filterNotes(List<NoteModel> notes) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return notes;
+    return notes.where((note) {
+      final titleMatch = note.title.toLowerCase().contains(query);
+      final contentMatch = (note.content ?? '').toLowerCase().contains(query);
+      return titleMatch || contentMatch;
+    }).toList();
+  }
+
+  void _notify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   // Initialize data and listen for auth state changes
   HomeProvider() {
@@ -43,7 +62,8 @@ class HomeProvider extends ChangeNotifier {
         _isLoading = false;
         activeCategoryId = null;
         activeCategoryName = 'Notes';
-        notifyListeners();
+        _searchQuery = '';
+        _notify();
       }
     });
 
@@ -54,6 +74,7 @@ class HomeProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _authSubscription?.cancel();
     super.dispose();
   }
@@ -64,14 +85,14 @@ class HomeProvider extends ChangeNotifier {
     if (user == null) {
       _isLoading = false;
       _errorMessage = null;
-      notifyListeners();
+      _notify();
       return;
     }
 
     try {
       _isLoading = true;
       _errorMessage = null;
-      notifyListeners();
+      _notify();
 
       // Run all three Supabase queries concurrently.
       // Pass the activeCategoryId to filter the notes if a label is selected.
@@ -93,7 +114,7 @@ class HomeProvider extends ChangeNotifier {
       debugPrint(_errorMessage);
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -102,6 +123,12 @@ class HomeProvider extends ChangeNotifier {
     activeCategoryId = categoryId;
     activeCategoryName = categoryName;
     loadHomeData();
+  }
+
+  void setSearchQuery(String query) {
+    if (_searchQuery == query) return;
+    _searchQuery = query;
+    _notify();
   }
 
   // 5. Helper method for Pull-to-Refresh functionality

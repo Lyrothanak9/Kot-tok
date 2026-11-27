@@ -1,45 +1,45 @@
 import 'package:flutter/material.dart';
 
+/// A reusable, responsive application logo widget.
+///
+/// The [Logo] adjusts its size dynamically based on the current screen height,
+/// ensuring it maintains appropriate proportions across devices.
 class Logo extends StatelessWidget {
+  /// Creates a [Logo] widget.
   const Logo({
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Fetch the current screen size to make the logo responsive.
     final screenSize = MediaQuery.sizeOf(context);
-    final shortest = screenSize.shortestSide;
 
-    // Responsive size: keeps fixed aspect ratio and never overstretches on tablets/desktop
-    final width = (shortest * 0.35).clamp(90.0, 140.0);
-    final height = width * 0.85;
+    // Calculates a responsive height for the logo container.
+    // 25% of the total screen height.
+    final height = screenSize.height * 0.25;
 
-    return Container(
+    // Calculates a responsive width.
+    // Uses 40% of the total screen height to maintain a stable aspect ratio
+    // relative to its height, preventing stretching on wide screens.
+    final width = screenSize.height * 0.4;
+
+    return SizedBox(
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blueAccent.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Image.asset(
-          "assets/images/logo/Logo_app.png",
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: Colors.blueAccent,
-            child: const Icon(
-              Icons.edit_note,
-              size: 48,
-              color: Colors.white,
-            ),
-          ),
+      child: Image.asset(
+        // Path to the application's logo image in the assets directory.
+        "assets/images/logo/Logo_app.png",
+
+        // Use BoxFit.contain to ensure the entire logo is always visible
+        // within the box without getting cropped, regardless of the container's proportions.
+        fit: BoxFit.contain,
+
+        // A fallback builder that displays an icon if the image fails to load
+        // (e.g., if the asset path is incorrect or missing).
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.edit_note,
+          color: Colors.blueAccent,
         ),
       ),
     );

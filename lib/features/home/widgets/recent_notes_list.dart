@@ -52,6 +52,7 @@ class RecentNotesList extends StatelessWidget {
               final note = provider.recentNotes[index];
               return RecentNoteCard(
                 note: note,
+                isGrid: true,
                 onTap: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute(

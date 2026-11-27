@@ -27,16 +27,23 @@ class AuthService {
   Future<AuthResponse> signUp({
     required String email,
     required String password,
+    String? username,
   }) async {
+    final cleanName = username?.trim();
     final response = await _client.auth.signUp(
       email: email,
       password: password,
+      data: cleanName != null && cleanName.isNotEmpty
+          ? {'name': cleanName, 'full_name': cleanName}
+          : null,
     );
     if (response.user != null) {
       try {
         await _client.from('profiles').upsert({
           'id': response.user!.id,
-          'full_name': response.user!.userMetadata?['name'] ?? email.split('@').first,
+          'full_name': (cleanName != null && cleanName.isNotEmpty)
+              ? cleanName
+              : (response.user!.userMetadata?['name'] ?? email.split('@').first),
         }, onConflict: 'id');
       } catch (_) {}
     }

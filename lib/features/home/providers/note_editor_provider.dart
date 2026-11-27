@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Required for ImagePicker
+import 'package:image_picker/image_picker.dart';
 import '../services/note_service.dart';
 import '../models/note_model.dart';
 
@@ -35,8 +35,34 @@ class NoteEditorProvider extends ChangeNotifier {
   List<String> remoteImageUrls = [];
 
   bool isChecklistMode = false;
+  bool showCheckedItems = true;
+  bool _isDisposed = false;
   List<ChecklistItem> checklistItems = [];
   final ImagePicker _picker = ImagePicker();
+
+  void _notify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
+  // --- Checklist Computed Getters ---
+  List<ChecklistItem> get uncheckedItems =>
+      checklistItems.where((item) => !item.isChecked).toList();
+
+  List<ChecklistItem> get checkedItems =>
+      checklistItems.where((item) => item.isChecked).toList();
+
+  int get completedCount =>
+      checklistItems.where((item) => item.isChecked).length;
+
+  int get totalCount => checklistItems.length;
+
+  double get checklistProgress =>
+      checklistItems.isEmpty ? 0.0 : completedCount / checklistItems.length;
+
+  bool get allItemsChecked =>
+      checklistItems.isNotEmpty && completedCount == checklistItems.length;
 
   void init(NoteModel? note, {bool isChecklistMode = false}) {
     existingNote = note;
@@ -49,7 +75,8 @@ class NoteEditorProvider extends ChangeNotifier {
       localImages.clear();
 
       // Automatically detect if this note was saved as a checklist
-      if (contentController.text.contains('☐ ') || contentController.text.contains('☑ ')) {
+      if (contentController.text.contains('☐ ') ||
+          contentController.text.contains('☑ ')) {
         _parseChecklistFromText();
       }
     } else if (isChecklistMode) {
@@ -97,11 +124,32 @@ class NoteEditorProvider extends ChangeNotifier {
   // CHECKLIST METHODS
   // ==========================================
 
-  void _disposeChecklistItems() {
-    for (var item in checklistItems) {
-      item.dispose();
-    }
+  void _disposeChecklistItems({bool defer = false}) {
+    final itemsToDispose = List<ChecklistItem>.from(checklistItems);
     checklistItems.clear();
+    if (defer) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (final item in itemsToDispose) {
+          item.dispose();
+        }
+      });
+    } else {
+      for (final item in itemsToDispose) {
+        item.dispose();
+      }
+    }
+  }
+
+  void _disposeSingleItemSafely(ChecklistItem item) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      item.dispose();
+    });
+  }
+
+  void _partitionChecklistItems() {
+    final unchecked = checklistItems.where((i) => !i.isChecked).toList();
+    final checked = checklistItems.where((i) => i.isChecked).toList();
+    checklistItems = [...unchecked, ...checked];
   }
 
   void toggleChecklistMode() {
@@ -109,38 +157,66 @@ class NoteEditorProvider extends ChangeNotifier {
     if (isChecklistMode) {
       _parseChecklistFromText();
     } else {
-      _syncChecklistToText();
-      _disposeChecklistItems();
+      // Convert cleanly to plain text lines without ☐ / ☑ prefixes
+      _syncChecklistToPlainText();
+      _disposeChecklistItems(defer: true);
     }
+    notifyListeners();
+  }
+
+  void toggleShowCheckedItems() {
+    showCheckedItems = !showCheckedItems;
     notifyListeners();
   }
 
   void _parseChecklistFromText() {
     isChecklistMode = true;
-    _disposeChecklistItems();
+    _disposeChecklistItems(defer: true);
     final rawText = contentController.text.trim();
     if (rawText.isEmpty) {
       checklistItems = [ChecklistItem()];
       return;
     }
 
-    final lines = rawText.split('\n');
-    checklistItems = lines.map((line) {
-      final cleanLine = line.replaceAll('\r', '').trimRight();
-      if (cleanLine.startsWith('☑ ')) return ChecklistItem(isChecked: true, text: cleanLine.substring(2));
-      if (cleanLine.startsWith('☐ ')) return ChecklistItem(isChecked: false, text: cleanLine.substring(2));
+    final lines = rawText.split(RegExp(r'\r?\n'));
+    checklistItems = lines
+        .map((line) => line.replaceAll('\r', '').trimRight())
+        .where((line) => line.isNotEmpty)
+        .map((cleanLine) {
+      if (cleanLine.startsWith('☑ ')) {
+        return ChecklistItem(isChecked: true, text: cleanLine.substring(2));
+      }
+      if (cleanLine == '☑') {
+        return ChecklistItem(isChecked: true);
+      }
+      if (cleanLine.startsWith('☐ ')) {
+        return ChecklistItem(isChecked: false, text: cleanLine.substring(2));
+      }
+      if (cleanLine == '☐') {
+        return ChecklistItem(isChecked: false);
+      }
       return ChecklistItem(isChecked: false, text: cleanLine);
     }).toList();
 
     if (checklistItems.isEmpty) {
       checklistItems = [ChecklistItem()];
+    } else {
+      _partitionChecklistItems();
     }
   }
 
   void _syncChecklistToText() {
     contentController.text = checklistItems
-        .where((item) => item.controller.text.trim().isNotEmpty) // Ignore empty items
-        .map((item) => '${item.isChecked ? '☑ ' : '☐ '}${item.controller.text.trim()}')
+        .where((item) => item.controller.text.trim().isNotEmpty)
+        .map((item) =>
+    '${item.isChecked ? '☑ ' : '☐ '}${item.controller.text.trim()}')
+        .join('\n');
+  }
+
+  void _syncChecklistToPlainText() {
+    contentController.text = checklistItems
+        .where((item) => item.controller.text.trim().isNotEmpty)
+        .map((item) => item.controller.text.trim())
         .join('\n');
   }
 
@@ -149,7 +225,7 @@ class NoteEditorProvider extends ChangeNotifier {
   void handleItemSubmitted(int index) {
     final now = DateTime.now();
     if (now.difference(_lastSubmittedTime).inMilliseconds < 150) {
-      return; // Debounce rapid triggers between onEditingComplete and onSubmitted
+      return; // Debounce rapid triggers between onEditingComplete and onChanged
     }
     _lastSubmittedTime = now;
 
@@ -162,42 +238,66 @@ class NoteEditorProvider extends ChangeNotifier {
     String remainingText = text;
     String newText = '';
 
-    if (selection.isValid && selection.baseOffset >= 0 && selection.baseOffset < text.length) {
-      // Split text at cursor position if cursor is in middle of string
+    if (selection.isValid &&
+        selection.baseOffset >= 0 &&
+        selection.baseOffset < text.length) {
       remainingText = text.substring(0, selection.baseOffset);
       newText = text.substring(selection.baseOffset);
       currentItem.controller.text = remainingText;
+      currentItem.controller.selection =
+          TextSelection.collapsed(offset: remainingText.length);
     }
 
-    final newItem = ChecklistItem(text: newText);
+    final newItem = ChecklistItem(
+      isChecked: currentItem.isChecked,
+      text: newText,
+    );
     checklistItems.insert(index + 1, newItem);
     notifyListeners();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       newItem.focusNode.requestFocus();
-      if (newText.isNotEmpty) {
-        newItem.controller.selection = const TextSelection.collapsed(offset: 0);
-      }
+      newItem.controller.selection = const TextSelection.collapsed(offset: 0);
     });
   }
 
   void handlePasteOrMultiline(int index, String rawText) {
     if (index < 0 || index >= checklistItems.length) return;
 
-    final lines = rawText.split(RegExp(r'\r?\n')).map((l) => l.trimRight()).toList();
+    final lines =
+    rawText.split(RegExp(r'\r?\n')).map((l) => l.trimRight()).toList();
     if (lines.length <= 1) return;
 
-    // The first line replaces current item's text
-    checklistItems[index].controller.text = lines.first;
+    _lastSubmittedTime = DateTime.now();
 
+    // Parse first line (strip checkbox symbol if pasted)
+    String firstLine = lines.first;
+    if (firstLine.startsWith('☑ ')) {
+      checklistItems[index].isChecked = true;
+      firstLine = firstLine.substring(2);
+    } else if (firstLine.startsWith('☐ ')) {
+      checklistItems[index].isChecked = false;
+      firstLine = firstLine.substring(2);
+    }
+
+    checklistItems[index].controller.text = firstLine;
+    checklistItems[index].controller.selection =
+        TextSelection.collapsed(offset: firstLine.length);
+
+    final bool isSingleNewlineSplit = lines.length == 2;
     int insertIdx = index + 1;
     ChecklistItem? lastAdded;
+
     for (int i = 1; i < lines.length; i++) {
       final line = lines[i];
-      if (line.isEmpty && i == lines.length - 1) continue;
+
+      // Only skip trailing empty line when pasting multiple lines (> 2)
+      if (!isSingleNewlineSplit && line.isEmpty && i == lines.length - 1) {
+        continue;
+      }
 
       String cleanLine = line;
-      bool isChecked = false;
+      bool isChecked = checklistItems[index].isChecked;
       if (cleanLine.startsWith('☑ ')) {
         isChecked = true;
         cleanLine = cleanLine.substring(2);
@@ -212,21 +312,30 @@ class NoteEditorProvider extends ChangeNotifier {
       insertIdx++;
     }
 
+    _partitionChecklistItems();
     notifyListeners();
 
     if (lastAdded != null) {
+      final target = lastAdded;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        lastAdded!.focusNode.requestFocus();
+        target.focusNode.requestFocus();
+        // If user hit Enter in middle of text, put cursor at start of split text
+        final offset = isSingleNewlineSplit ? 0 : target.controller.text.length;
+        target.controller.selection = TextSelection.collapsed(offset: offset);
       });
     }
   }
 
   void addChecklistItem({int? afterIndex, String text = ''}) {
     final newItem = ChecklistItem(text: text);
-    if (afterIndex != null && afterIndex >= 0 && afterIndex < checklistItems.length) {
+    if (afterIndex != null &&
+        afterIndex >= 0 &&
+        afterIndex < checklistItems.length) {
       checklistItems.insert(afterIndex + 1, newItem);
     } else {
-      checklistItems.add(newItem);
+      // Insert right after the last unchecked item
+      final uncheckedCount = uncheckedItems.length;
+      checklistItems.insert(uncheckedCount, newItem);
     }
     notifyListeners();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -236,8 +345,8 @@ class NoteEditorProvider extends ChangeNotifier {
 
   void removeChecklistItem(int index) {
     if (index >= 0 && index < checklistItems.length) {
-      checklistItems[index].dispose();
-      checklistItems.removeAt(index);
+      final removed = checklistItems.removeAt(index);
+      _disposeSingleItemSafely(removed);
       if (checklistItems.isEmpty) {
         checklistItems.add(ChecklistItem());
       }
@@ -248,28 +357,122 @@ class NoteEditorProvider extends ChangeNotifier {
   void removeChecklistItemWithFocus(int index) {
     if (index >= 0 && index < checklistItems.length) {
       final prevIndex = index > 0 ? index - 1 : null;
-      checklistItems[index].dispose();
-      checklistItems.removeAt(index);
+      final removed = checklistItems.removeAt(index);
+      _disposeSingleItemSafely(removed);
+
       if (checklistItems.isEmpty) {
-        checklistItems.add(ChecklistItem());
+        final fresh = ChecklistItem();
+        checklistItems.add(fresh);
+        notifyListeners();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          fresh.focusNode.requestFocus();
+        });
+        return;
       }
+
       notifyListeners();
 
       if (prevIndex != null && prevIndex < checklistItems.length) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          final prev = checklistItems[prevIndex];
-          prev.focusNode.requestFocus();
-          prev.controller.selection = TextSelection.collapsed(offset: prev.controller.text.length);
+          if (prevIndex < checklistItems.length) {
+            final prev = checklistItems[prevIndex];
+            prev.focusNode.requestFocus();
+            prev.controller.selection =
+                TextSelection.collapsed(offset: prev.controller.text.length);
+          }
         });
       }
+    }
+  }
+
+  /// Handles pressing Backspace when cursor is at offset 0 of a checklist item.
+  /// - If empty, deletes the item and focuses the previous one.
+  /// - If non-empty and a previous item in the same checked-state group exists,
+  ///   merges its text into the previous item.
+  void handleBackspaceAtStart(int index) {
+    if (index < 0 || index >= checklistItems.length) return;
+
+    final current = checklistItems[index];
+    final currentText = current.controller.text;
+
+    if (currentText.isEmpty) {
+      if (checklistItems.length > 1) {
+        removeChecklistItemWithFocus(index);
+      }
+      return;
+    }
+
+    if (index > 0 && checklistItems[index - 1].isChecked == current.isChecked) {
+      final prev = checklistItems[index - 1];
+      final mergeOffset = prev.controller.text.length;
+      prev.controller.text = '${prev.controller.text}$currentText';
+
+      final removed = checklistItems.removeAt(index);
+      _disposeSingleItemSafely(removed);
+      notifyListeners();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        prev.focusNode.requestFocus();
+        prev.controller.selection =
+            TextSelection.collapsed(offset: mergeOffset);
+      });
     }
   }
 
   void toggleChecklistItem(int index, bool? value) {
     if (index >= 0 && index < checklistItems.length) {
       checklistItems[index].isChecked = value ?? false;
+      _partitionChecklistItems();
       notifyListeners();
     }
+  }
+
+  void reorderUncheckedItem(int oldIndex, int newIndex) {
+    final unchecked = uncheckedItems;
+    if (oldIndex < 0 ||
+        oldIndex >= unchecked.length ||
+        newIndex < 0 ||
+        newIndex >= unchecked.length) {
+      return;
+    }
+
+    final moved = unchecked.removeAt(oldIndex);
+    unchecked.insert(newIndex, moved);
+    checklistItems = [...unchecked, ...checkedItems];
+    _notify();
+  }
+
+  void toggleAllChecklistItems() {
+    if (checklistItems.isEmpty) return;
+    final targetState = !allItemsChecked;
+    for (final item in checklistItems) {
+      item.isChecked = targetState;
+    }
+    _partitionChecklistItems();
+    _notify();
+  }
+
+  void uncheckAllItems() {
+    for (final item in checklistItems) {
+      item.isChecked = false;
+    }
+    _partitionChecklistItems();
+    _notify();
+  }
+
+  void deleteCheckedItems() {
+    final toRemove = checklistItems.where((item) => item.isChecked).toList();
+    if (toRemove.isEmpty) return;
+
+    checklistItems.removeWhere((item) => item.isChecked);
+    for (final item in toRemove) {
+      _disposeSingleItemSafely(item);
+    }
+
+    if (checklistItems.isEmpty) {
+      checklistItems.add(ChecklistItem());
+    }
+    notifyListeners();
   }
 
   // ==========================================
@@ -292,8 +495,9 @@ class NoteEditorProvider extends ChangeNotifier {
       _syncChecklistToText();
     }
 
-    // Don't save if everything is empty
-    if (titleController.text.trim().isEmpty &&
+    // Don't save a brand new note if everything is empty
+    if (existingNote == null &&
+        titleController.text.trim().isEmpty &&
         contentController.text.trim().isEmpty &&
         localImages.isEmpty &&
         remoteImageUrls.isEmpty) {
@@ -302,7 +506,7 @@ class NoteEditorProvider extends ChangeNotifier {
 
     isSaving = true;
     errorMessage = null;
-    notifyListeners();
+    _notify();
 
     try {
       // 1. Upload any newly picked local images to Supabase storage
@@ -351,7 +555,7 @@ class NoteEditorProvider extends ChangeNotifier {
       return false;
     } finally {
       isSaving = false;
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -360,7 +564,7 @@ class NoteEditorProvider extends ChangeNotifier {
 
     isSaving = true;
     errorMessage = null;
-    notifyListeners();
+    _notify();
 
     try {
       await _noteService.deleteNote(existingNote!.id);
@@ -371,15 +575,16 @@ class NoteEditorProvider extends ChangeNotifier {
       return false;
     } finally {
       isSaving = false;
-      notifyListeners();
+      _notify();
     }
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     titleController.dispose();
     contentController.dispose();
-    _disposeChecklistItems();
+    _disposeChecklistItems(defer: false);
     super.dispose();
   }
 }

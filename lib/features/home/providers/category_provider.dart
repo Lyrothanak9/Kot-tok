@@ -1,20 +1,56 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/category_service.dart';
 import '../models/category_model.dart';
 
 class CategoryProvider extends ChangeNotifier {
   final CategoryService _categoryService = CategoryService();
+  StreamSubscription<AuthState>? _authSubscription;
 
   List<CategoryModel> categories = [];
-  bool isLoading = true;
+  bool isLoading = false;
+  bool _isDisposed = false;
+
+  void _notify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   CategoryProvider() {
-    loadCategories();
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.session != null) {
+        loadCategories();
+      } else {
+        categories = [];
+        isLoading = false;
+        _notify();
+      }
+    });
+
+    if (Supabase.instance.client.auth.currentUser != null) {
+      loadCategories();
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> loadCategories() async {
+    if (Supabase.instance.client.auth.currentUser == null) {
+      categories = [];
+      isLoading = false;
+      _notify();
+      return;
+    }
+
     isLoading = true;
-    notifyListeners();
+    _notify();
 
     try {
       categories = await _categoryService.getCategories();
@@ -22,7 +58,7 @@ class CategoryProvider extends ChangeNotifier {
       debugPrint("Error loading categories: $e");
     } finally {
       isLoading = false;
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -32,7 +68,7 @@ class CategoryProvider extends ChangeNotifier {
 
       // Add the new category to the local list and update UI
       categories.add(newCategory);
-      notifyListeners();
+      _notify();
 
       return newCategory;
     } catch (e) {
@@ -49,7 +85,7 @@ class CategoryProvider extends ChangeNotifier {
       final index = categories.indexWhere((c) => c.id == id);
       if (index != -1) {
         categories[index] = updatedCategory;
-        notifyListeners();
+        _notify();
       }
       return updatedCategory;
     } catch (e) {
@@ -62,7 +98,7 @@ class CategoryProvider extends ChangeNotifier {
     try {
       await _categoryService.deleteCategory(id);
       categories.removeWhere((c) => c.id == id);
-      notifyListeners();
+      _notify();
       return true;
     } catch (e) {
       debugPrint("Error deleting category: $e");

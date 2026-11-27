@@ -11,27 +11,34 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We remove the Scaffold, AppBar, FAB, and BottomAppBar from here
-    // because MainNavigationScreen is now handling them.
-    return RefreshIndicator(
-      onRefresh: () async {
-        await context.read<HomeProvider>().refresh();
-      },
-      child: const SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SummaryStatsCard(),
-            SizedBox(height: 24),
-            PinnedNotesList(),
-            SizedBox(height: 24),
-            RecentNotesList(),
-            SizedBox(height: 80), // Keeps the bottom content from hiding behind the FAB
-          ],
+    // MainNavigationScreen provides the Scaffold, AppBar, FAB, and BottomAppBar.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
+          child: SummaryStatsCard(),
         ),
-      ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await context.read<HomeProvider>().refresh();
+            },
+            child: const SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PinnedNotesList(),
+                  RecentNotesList(),
+                  SizedBox(height: 80), // Keeps the bottom content from hiding behind the FAB
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

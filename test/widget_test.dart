@@ -3,12 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kot_tok/app/app.dart';
 import 'package:kot_tok/features/Navigation/provider/bottom_app_bar_provider.dart';
 import 'package:kot_tok/features/Navigation/screen/main_navigation_screen.dart';
-import 'package:kot_tok/features/Navigation/widgets/app_bar.dart';
+import 'package:kot_tok/features/Navigation/widgets/search_app_bar.dart';
 import 'package:kot_tok/features/auth/screens/sign_in_screen.dart';
+import 'package:kot_tok/features/home/models/note_model.dart';
 import 'package:kot_tok/features/home/providers/category_provider.dart';
 import 'package:kot_tok/features/home/providers/home_provider.dart';
+import 'package:kot_tok/features/home/providers/note_editor_provider.dart';
 import 'package:kot_tok/features/home/screens/home_screen.dart';
 import 'package:kot_tok/features/home/screens/note_editor_screen.dart';
+import 'package:kot_tok/features/home/widgets/summary_stats_card.dart';
 import 'package:kot_tok/features/splash/screen/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,12 +44,13 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
   });
 
-  testWidgets('MainNavigationScreen smoke test - renders CustomAppBar and toggles grid/single column icon', (WidgetTester tester) async {
+  testWidgets('MainNavigationScreen smoke test - renders SearchAppBar and toggles grid/single column icon', (WidgetTester tester) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => BottomAppBarProvider()),
           ChangeNotifierProvider(create: (_) => HomeProvider()),
+          ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ],
         child: const MaterialApp(
           home: MainNavigationScreen(),
@@ -54,7 +58,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(CustomAppBar), findsOneWidget);
+    expect(find.byType(SearchAppBar), findsOneWidget);
     expect(find.text('Search your notes'), findsOneWidget);
     expect(find.text('A'), findsOneWidget);
     expect(find.byType(HomeScreen), findsOneWidget);
@@ -156,5 +160,75 @@ void main() {
     expect(find.text('Apples'), findsOneWidget);
     expect(find.text('Bananas'), findsOneWidget);
     expect(find.text('Oranges'), findsOneWidget);
+  });
+
+  test('NoteEditorProvider.reorderUncheckedItem matches onReorderItem adjusted indices', () {
+    final provider = NoteEditorProvider();
+    addTearDown(provider.dispose);
+
+    provider.init(
+      NoteModel(
+        id: 'n1',
+        userId: 'u1',
+        title: 'List',
+        content: '☐ First\n☐ Second\n☐ Third',
+        isPinned: false,
+        isFavorite: false,
+        createdAt: DateTime(2026),
+      ),
+    );
+
+    // Move index 0 ('First') to adjusted index 2 (after 'Third')
+    provider.reorderUncheckedItem(0, 2);
+    expect(
+      provider.uncheckedItems.map((e) => e.controller.text).toList(),
+      ['Second', 'Third', 'First'],
+    );
+
+    // Move index 2 ('First') back to index 0
+    provider.reorderUncheckedItem(2, 0);
+    expect(
+      provider.uncheckedItems.map((e) => e.controller.text).toList(),
+      ['First', 'Second', 'Third'],
+    );
+  });
+
+  test('HomeProvider.setSearchQuery updates searchQuery without errors when signed out', () {
+    final provider = HomeProvider();
+    addTearDown(provider.dispose);
+
+    expect(provider.searchQuery, '');
+    provider.setSearchQuery('groceries');
+    expect(provider.searchQuery, 'groceries');
+    expect(provider.pinnedNotes, isEmpty);
+    expect(provider.recentNotes, isEmpty);
+  });
+
+  testWidgets('HomeScreen keeps SummaryStatsCard fixed at the top when scrolling notes area', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => BottomAppBarProvider()),
+          ChangeNotifierProvider(create: (_) => HomeProvider()),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: HomeScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cardFinder = find.byType(SummaryStatsCard);
+    expect(cardFinder, findsOneWidget);
+    final initialTopLeft = tester.getTopLeft(cardFinder);
+
+    // Drag the notes scroll area downward and upward
+    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -150));
+    await tester.pump();
+    expect(tester.getTopLeft(cardFinder), initialTopLeft);
+
+    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, 150));
+    await tester.pump();
+    expect(tester.getTopLeft(cardFinder), initialTopLeft);
   });
 }
