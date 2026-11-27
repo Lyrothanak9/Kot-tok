@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:kot_tok/app/theme/app_colors.dart';
+import 'package:kot_tok/app/theme/text_styles.dart';
 
 class LineDivider extends StatelessWidget {
-  const LineDivider({super.key});
+  final String text;
+
+  const LineDivider({
+    super.key,
+    this.text = 'Or continue with',
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
+        const Expanded(
           child: Divider(
-            color: Colors.grey[400],
-            thickness: 2,
+            color: AppColors.border,
+            thickness: 1,
             endIndent: 12,
           ),
         ),
         Text(
-          'Or continue with',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Colors.grey[400],
+          text,
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textHint,
           ),
         ),
-        Expanded(
+        const Expanded(
           child: Divider(
-            color: Colors.grey[400],
-            thickness: 2,
+            color: AppColors.border,
+            thickness: 1,
             indent: 12,
           ),
         ),

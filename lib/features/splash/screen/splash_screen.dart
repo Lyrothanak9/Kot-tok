@@ -56,8 +56,9 @@ class _SplashScreenState extends State<SplashScreen> {
           // Center all branding elements vertically on the screen.
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // App Logo Widget (Handles its own responsive sizing)
-            const Logo(),
+            // App Logo Widget
+            const Logo(height: 112),
+            const SizedBox(height: 16),
             
             // App Title
             const Text(
